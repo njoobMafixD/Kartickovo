@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Cards</title>
+    <style>
+        /* Apply gradient background to the whole page */
+        body {
+            background: url('wppp.png') no-repeat center center fixed;
+            background-size: 100%; /* Makes the image 50% of its original size */
+            background-position: center; /* Ensures the image is centered */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+
+        /* Card container styling */
+        .card-container {
+            perspective: 1000px; /* For 3D flip effect */
+        }
+
+        /* Card Styling */
+        .card {
+            border: 3px solid #fff; /* White border */
+            padding: 20px;
+            margin: 20px;
+            background: linear-gradient(to bottom, #95c942, #5570c7); /* Gradient background */
+            text-align: center;
+            font-size: 24px;
+            display: grid;
+            width: 400px;
+            height: 400px;
+            border-radius: 15px;
+            color: white;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d; /* Necessary for 3D effect */
+            transition: transform 1s; /* Smooth transition for flip */
+            grid-template-columns: repeat(4, 1fr); /* Maintain the grid layout */
+            grid-template-rows: repeat(4, 1fr); /* Maintain the grid layout */
+        }
+
+        /* Flip effect when clicked */
+        .card.flip {
+            transform: rotateY(180deg); /* Flip the card */
+        }
+
+        /* Card number styling */
+        .card-number {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 18px;
+            color: white;
+        }
+
+        /* Styling for the numbers inside the card */
+        .card-numbers {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            grid-gap: 30px;
+            font-size: 70px;
+            align-items: center;
+            justify-items: center;
+            padding: 20px;
+            color: white; /* Ensure numbers are white */
+        }
+
+        /* Card content front side */
+        .card-front, .card-back {
+            position: absolute; /* Keeps the sides within the card container */
+            width: 100%;
+            height: 100%;
+            display: grid; /* Ensure grid layout works on both sides */
+            grid-template-columns: repeat(4, 1fr); /* Maintain the grid layout */
+            grid-template-rows: repeat(4, 1fr); /* Maintain the grid layout */
+            backface-visibility: hidden; /* Hide the back side when flipped */
+            border-radius: 15px;
+            color: white;
+        }
+
+        /* Card content back side */
+        .card-back {
+            background: linear-gradient(to bottom, #95c942, #5570c7); /* Gradient background */
+            color: white;
+            font-size: 36px;
+            display: grid;
+            justify-content: center;
+            align-items: center;
+            transform: rotateY(180deg); /* Initially hide the back side */
+            backface-visibility: hidden; /* Hide the back side */
+            border-radius: 15px;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="card-container">
+        <!-- Card content will be dynamically added here -->
+        <div id="card-content"></div>
+    </div>
+
+    <script>
+        const fields = [
+            [1, 3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63],
+            [16, 18, 21, 24, 27, 30, 49, 52, 55, 58, 61],
+            [4, 7, 14, 21, 28, 34, 38, 45, 52, 55, 62],
+            [2, 3, 10, 15, 22, 27, 34, 39, 46, 51, 58, 63],
+            [8, 11, 14, 25, 28, 31, 42, 45, 56, 59, 62],
+            [2, 6, 11, 18, 23, 30, 35, 42, 47, 54, 59],
+            [32, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61],
+            [2, 7, 14, 19, 26, 31, 38, 43, 50, 55, 62],
+            [32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62],
+            [4, 6, 13, 20, 23, 30, 37, 44, 47, 54, 61],
+            [16, 19, 22, 25, 28, 31, 50, 53, 56, 59, 62],
+            [8, 9, 12, 15, 26, 29, 40, 43, 46, 57, 60, 63],
+            [1, 5, 11, 17, 23, 29, 35, 41, 47, 53, 59],
+            [8, 10, 13, 24, 27, 30, 51, 44, 47, 58, 61],
+            [16, 17, 20, 23, 26, 29, 48, 51, 54, 57, 60, 63],
+            [32, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63],
+            [1, 7, 13, 19, 25, 31, 37, 43, 49, 55, 61],
+            [4, 5, 12, 15, 22, 29, 36, 39, 46, 53, 60, 63]
+        ];
+
+        let currentCard = 0; // To keep track of the current card
+
+        // Function to update the displayed card content
+        function showCard(cardIndex) {
+            const card = fields[cardIndex];
+            const cardContent = document.getElementById('card-content');
+
+            // Creating a grid for numbers to fill the card's space
+            let numbersHTML = '';
+            card.forEach(num => {
+                numbersHTML += `<div class="card-number-item">${num}</div>`;
+            });
+
+            // Card with both front and back content
+            const nextCardIndex = (cardIndex + 1) % fields.length;
+            const nextCard = fields[nextCardIndex];
+            let nextCardNumbersHTML = '';
+            nextCard.forEach(num => {
+                nextCardNumbersHTML += `<div class="card-number-item">${num}</div>`;
+            });
+
+            // Card with front and back content
+            cardContent.innerHTML = `
+                <div class="card" onclick="nextCard()">
+                    <div class="card-front">
+                        <div class="card-numbers">${numbersHTML}</div>
+                        <div class="card-number">Card ${cardIndex + 1}</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-numbers">${nextCardNumbersHTML}</div>
+                        <div class="card-number">Next Card</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to move to the next card
+        function nextCard() {
+            const card = document.querySelector('.card');
+            
+            // Prevent further clicks while the card is flipping
+            card.removeEventListener('click', nextCard);
+
+            // Add flip class for the effect
+            card.classList.add('flip'); 
+
+            // Wait for the transition to complete before rendering the new card
+            card.addEventListener('transitionend', () => {
+                currentCard++;
+                if (currentCard >= fields.length) {
+                    currentCard = 0; // Reset to the first card when reaching the last one
+                }
+                showCard(currentCard);
+            }, { once: true }); // Use `once: true` to automatically remove the event listener
+        }
+
+
+        // Initial card display
+        showCard(currentCard);
+
+    </script>
+
+</body>
+</html>
